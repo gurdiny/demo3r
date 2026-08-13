@@ -6,26 +6,24 @@ import {
   type ProtectionReason,
 } from '../security/contentProtection';
 
-export interface ProtectionState {
-  /** Velo activo: el contenido se oculta (pérdida de foco o intento de captura). */
-  shielded: boolean;
-  /** Último aviso a mostrar al usuario, o null. */
-  notice: { reason: ProtectionReason; message: string; id: number } | null;
+export interface ProtectionNotice {
+  reason: ProtectionReason;
+  message: string;
+  id: number;
 }
 
-type Options = Omit<ContentProtectionOptions, 'onViolation' | 'onShieldChange'> & {
+type Options = Omit<ContentProtectionOptions, 'onViolation'> & {
   /** Milisegundos que permanece visible el aviso. Por defecto 2600. */
   noticeDurationMs?: number;
 };
 
 /**
  * Activa la protección de contenido durante el ciclo de vida del componente
- * y expone el estado necesario para pintar el velo y los avisos.
+ * y expone el último aviso a mostrar (o null si no hay ninguno).
  */
-export function useContentProtection(options: Options = {}): ProtectionState {
+export function useContentProtection(options: Options = {}): ProtectionNotice | null {
   const { noticeDurationMs = 2600, ...protectionOptions } = options;
-  const [shielded, setShielded] = useState(false);
-  const [notice, setNotice] = useState<ProtectionState['notice']>(null);
+  const [notice, setNotice] = useState<ProtectionNotice | null>(null);
   const noticeTimer = useRef<number | undefined>(undefined);
   const noticeId = useRef(0);
 
@@ -36,7 +34,6 @@ export function useContentProtection(options: Options = {}): ProtectionState {
   useEffect(() => {
     const uninstall = installContentProtection({
       ...optionsRef.current,
-      onShieldChange: setShielded,
       onViolation: (reason) => {
         noticeId.current += 1;
         setNotice({ reason, message: VIOLATION_MESSAGES[reason], id: noticeId.current });
@@ -51,5 +48,5 @@ export function useContentProtection(options: Options = {}): ProtectionState {
     };
   }, [noticeDurationMs]);
 
-  return { shielded, notice };
+  return notice;
 }

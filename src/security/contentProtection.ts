@@ -8,13 +8,13 @@
  *
  * IMPORTANTE: ningún navegador expone una API para impedir capturas de
  * pantalla del sistema operativo. Lo que aquí se hace es:
- *   1. Interceptar la tecla Impr Pant / Cmd+Shift+3/4/5 y vaciar el
- *      portapapeles con un aviso.
- *   2. Ocultar el contenido (velo opaco) cuando la ventana pierde el foco,
- *      que es lo que ocurre con recortes tipo Win+Shift+S o el selector
- *      de captura de macOS.
- *   3. Bloquear la impresión / "Guardar como PDF" salvo en los reportes
+ *   1. Interceptar la tecla Impr Pant / Cmd+Shift+3/4/5 y sustituir el
+ *      contenido del portapapeles por un aviso.
+ *   2. Bloquear la impresión / "Guardar como PDF" salvo en los reportes
  *      autorizados.
+ *
+ * La aplicación NUNCA oculta la interfaz por sí sola: no hay velos ni
+ * pantallas en negro, sólo avisos discretos al bloquear una acción.
  */
 
 export type ProtectionReason =
@@ -30,12 +30,8 @@ export type ProtectionReason =
 export interface ContentProtectionOptions {
   /** Permitir pegar dentro de campos de formulario. Por defecto: false. */
   allowPasteInInputs?: boolean;
-  /** Ocultar el contenido cuando la ventana pierde el foco. Por defecto: true. */
-  shieldOnBlur?: boolean;
   /** Se invoca cada vez que se bloquea una acción. */
   onViolation?: (reason: ProtectionReason) => void;
-  /** Se invoca para mostrar u ocultar el velo de protección. */
-  onShieldChange?: (shielded: boolean) => void;
 }
 
 export const VIOLATION_MESSAGES: Record<ProtectionReason, string> = {
@@ -75,12 +71,7 @@ const poisonClipboard = (event?: ClipboardEvent): void => {
  * Instala la protección sobre el documento. Devuelve la función de limpieza.
  */
 export function installContentProtection(options: ContentProtectionOptions = {}): () => void {
-  const {
-    allowPasteInInputs = false,
-    shieldOnBlur = true,
-    onViolation = () => {},
-    onShieldChange = () => {},
-  } = options;
+  const { allowPasteInInputs = false, onViolation = () => {} } = options;
 
   const listeners: Array<() => void> = [];
 
@@ -131,26 +122,9 @@ export function installContentProtection(options: ContentProtectionOptions = {})
     onViolation('drag');
   });
 
-  // --- Velo de protección ------------------------------------------------
-  let shieldTimer: number | undefined;
-
-  const raiseShield = (autoHideMs?: number) => {
-    onShieldChange(true);
-    window.clearTimeout(shieldTimer);
-    if (autoHideMs) {
-      shieldTimer = window.setTimeout(() => onShieldChange(false), autoHideMs);
-    }
-  };
-
-  const lowerShield = () => {
-    window.clearTimeout(shieldTimer);
-    onShieldChange(false);
-  };
-
   // --- Teclado -----------------------------------------------------------
   const handleScreenshotKey = () => {
     poisonClipboard();
-    raiseShield(1200);
     onViolation('screenshot');
   };
 
@@ -220,16 +194,6 @@ export function installContentProtection(options: ContentProtectionOptions = {})
     }
   });
 
-  // --- Pérdida de foco / cambio de pestaña -------------------------------
-  if (shieldOnBlur) {
-    on(window, 'blur', () => raiseShield());
-    on(window, 'focus', () => lowerShield());
-    on(document, 'visibilitychange', () => {
-      if (document.hidden) raiseShield();
-      else lowerShield();
-    });
-  }
-
   // --- Impresión ---------------------------------------------------------
   on(window, 'beforeprint', () => {
     if (document.documentElement.classList.contains('allow-print')) return;
@@ -241,8 +205,6 @@ export function installContentProtection(options: ContentProtectionOptions = {})
   return () => {
     listeners.forEach((off) => off());
     listeners.length = 0;
-    window.clearTimeout(shieldTimer);
     document.documentElement.classList.remove('protected-content');
-    onShieldChange(false);
   };
 }
