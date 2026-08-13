@@ -1,1 +1,57 @@
 @import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/* Protección de contenido — ver src/security/contentProtection.ts      */
+/* ------------------------------------------------------------------ */
+
+html.protected-content,
+html.protected-content body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;  /* Menú "Copiar" al mantener pulsado en iOS */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Los campos de formulario siguen siendo editables con normalidad. */
+html.protected-content input,
+html.protected-content textarea,
+html.protected-content select,
+html.protected-content [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Nada de arrastrar imágenes fuera de la aplicación. */
+html.protected-content img,
+html.protected-content svg,
+html.protected-content canvas {
+  -webkit-user-drag: none;
+  user-drag: none;
+  pointer-events: auto;
+}
+
+/* Ocultar la selección residual que algunos navegadores aún pintan. */
+html.protected-content *:not(input):not(textarea)::selection {
+  background: transparent;
+  color: inherit;
+}
+
+/* Bloqueo de impresión y de "Guardar como PDF".
+   Los reportes autorizados añaden la clase `allow-print` al <html>. */
+@media print {
+  html.protected-content:not(.allow-print) body {
+    display: none !important;
+  }
+
+  html.protected-content:not(.allow-print)::after {
+    content: "3R CONNECT — Documento confidencial. La impresión de esta pantalla no está autorizada.";
+    display: block;
+    padding: 4rem 2rem;
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+    text-align: center;
+    color: #0f172a;
+  }
+}

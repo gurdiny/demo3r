@@ -9,6 +9,7 @@ import { CoachingView } from './components/CoachingView';
 import { ValuationView } from './components/ValuationView';
 import { ArchitectureView } from './components/ArchitectureView';
 import { DisclaimerModal } from './components/DisclaimerModal';
+import { ContentProtection } from './components/ContentProtection';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<string>('doctor');
@@ -37,6 +38,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans text-slate-900 flex flex-col">
+      {/* Content Protection Layer (anti-copy / anti-screenshot) */}
+      <ContentProtection />
+
       {/* Initial Warning Disclaimer Modal */}
       <DisclaimerModal
         isOpen={showDisclaimer}

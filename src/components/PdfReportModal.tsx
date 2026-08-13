@@ -8,6 +8,14 @@ interface PdfReportModalProps {
 }
 
 export const PdfReportModal: React.FC<PdfReportModalProps> = ({ property, onClose }) => {
+  // Este reporte es la única salida impresa autorizada: mientras el modal
+  // está abierto se levanta el bloqueo global de impresión.
+  // Ver src/security/contentProtection.ts
+  React.useEffect(() => {
+    document.documentElement.classList.add('allow-print');
+    return () => document.documentElement.classList.remove('allow-print');
+  }, []);
+
   const handlePrint = () => {
     try {
       window.print();
