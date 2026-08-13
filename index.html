@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3R CONNECT — Plataforma e Infraestructura Inmobiliaria con IA</title>
+    <script>
+      (function() {
+        try {
+          var currentFetch = window.fetch;
+          var getter = function() { return currentFetch; };
+          var setter = function(val) { currentFetch = val; };
+
+          var targets = [
+            typeof Window !== 'undefined' ? Window.prototype : null,
+            window,
+            typeof globalThis !== 'undefined' ? globalThis : null
+          ];
+
+          for (var i = 0; i < targets.length; i++) {
+            var target = targets[i];
+            if (!target) continue;
+            try {
+              Object.defineProperty(target, 'fetch', {
+                get: getter,
+                set: setter,
+                configurable: true,
+                enumerable: true
+              });
+            } catch (e) {}
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

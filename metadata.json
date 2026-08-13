@@ -1,0 +1,6 @@
+{
+  "name": "3R CONNECT - Ecosistema Inmobiliario con IA",
+  "description": "Prototipo interactivo del Ecosistema 3R CONNECT con Property Doctor, Co-Broker con Atribución Dinámica, Perfilador de WhatsApp, Auditor de Anuncios, Coaching de Conversaciones y Valuación Explicable.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
